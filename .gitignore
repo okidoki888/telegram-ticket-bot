@@ -18,14 +18,29 @@ certbot/
 backups/
 *_backup_*/
 
-# Учетные данные
+# Учетные данные и секреты
 bot/credentials/
 *.json
 *.pem
 *.key
+*credentials*
+*secret*
+*token*
 
 # Nginx
 nginx/.htpasswd
+nginx/*.htpasswd
+
+# Дополнительная безопасность
+*.env*
+!env.example
+secrets/
+private/
+.secrets
+config.local.*
+
+# Файлы с чувствительными данными
+cursor_configure_telegram_bot_settings.md
 
 # Временные файлы
 restore_temp/
