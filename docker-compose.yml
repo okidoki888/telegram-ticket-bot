@@ -1,0 +1,166 @@
+version: '3.8'
+
+services:
+  # Основной бот
+  telegram-bot:
+    build: 
+      context: ./bot
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - BOT_TOKEN=${BOT_TOKEN}
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - SECRET_TOKEN=${SECRET_TOKEN}
+      - CHAT_ID=${CHAT_ID}
+      - SINK_TOPIC_ID=${SINK_TOPIC_ID}
+      - SOURCE_TOPIC_IDS=${SOURCE_TOPIC_IDS}
+      - CLOSE_TRANSFER_MODE=${CLOSE_TRANSFER_MODE}
+      - REPLY_ACK=${REPLY_ACK}
+      - DEBUG_VERBOSE=${DEBUG_VERBOSE}
+      - ENFORCE_SOURCE_TOPICS=${ENFORCE_SOURCE_TOPICS}
+      - TICKET_PATTERN=${TICKET_PATTERN}
+      - GOOGLE_SPREADSHEET_ID=${GOOGLE_SPREADSHEET_ID}
+      - GOOGLE_SHEET_NAME=${GOOGLE_SHEET_NAME}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SENTRY_DSN=${SENTRY_DSN}
+    volumes:
+      - ./logs:/app/logs
+      - ./bot/credentials:/app/credentials:ro
+    networks:
+      - bot-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL для логирования
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: telegram_bot
+      POSTGRES_USER: bot_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./database/tables.sql:/docker-entrypoint-initdb.d/02-tables.sql:ro
+    networks:
+      - bot-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bot_user -d telegram_bot"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis для кеширования и очередей
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${DB_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - bot-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx для SSL и reverse proxy
+  nginx:
+    build: 
+      context: ./nginx
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    depends_on:
+      - telegram-bot
+    networks:
+      - bot-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/nginx-health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Certbot для SSL сертификатов
+  certbot:
+    image: certbot/certbot:latest
+    restart: "no"
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    environment:
+      - DOMAIN=${DOMAIN}
+      - SSL_EMAIL=${SSL_EMAIL}
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
+
+  # Prometheus для метрик
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - bot-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Grafana для визуализации
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=https://${DOMAIN}/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    networks:
+      - bot-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  bot-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:

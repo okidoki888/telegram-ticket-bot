@@ -1,0 +1,74 @@
+# Переменные окружения
+.env
+
+# Логи
+logs/
+*.log
+
+# Данные Docker
+postgres_data/
+redis_data/
+prometheus_data/
+grafana_data/
+
+# SSL сертификаты
+certbot/
+
+# Бэкапы
+backups/
+*_backup_*/
+
+# Учетные данные
+bot/credentials/
+*.json
+*.pem
+*.key
+
+# Nginx
+nginx/.htpasswd
+
+# Временные файлы
+restore_temp/
+.tmp/
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
