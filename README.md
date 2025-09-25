@@ -13,6 +13,8 @@
 
 ## Быстрый старт
 
+### 🚀 Автоматическое развертывание
+
 1. Клонируйте репозиторий:
 ```bash
 git clone https://github.com/okidoki888/telegram-ticket-bot.git
@@ -21,7 +23,7 @@ cd telegram-ticket-bot
 
 2. Скопируйте и отредактируйте конфигурацию:
 ```bash
-cp .env.example .env
+cp env.example .env
 nano .env
 ```
 
@@ -30,6 +32,13 @@ nano .env
 chmod +x scripts/deploy.sh
 ./scripts/deploy.sh
 ```
+
+### 📚 Подробные инструкции
+
+- **[🐧 Ubuntu 24.04 Setup](UBUNTU_SETUP.md)** - Полная установка на Ubuntu с нуля (рекомендуется)
+- **[📋 Quick Start](QUICK_START.md)** - Быстрый старт за 5 минут
+- **[⚙️ Installation Guide](INSTALL.md)** - Подробное руководство по установке
+- **[✅ Deployment Checklist](CHECK.md)** - Чек-лист для проверки
 
 ## Структура проекта
 
