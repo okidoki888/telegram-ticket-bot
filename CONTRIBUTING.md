@@ -8,7 +8,7 @@
 
 Если вы нашли ошибку:
 
-1. **Проверьте**, что ошибка еще не была зарегистрирована в [Issues](https://github.com/YOUR_USERNAME/telegram-ticket-bot/issues)
+1. **Проверьте**, что ошибка еще не была зарегистрирована в [Issues](https://github.com/okidoki888/telegram-ticket-bot/issues)
 2. **Создайте новый Issue** с подробным описанием:
    - Версия системы и Docker
    - Шаги для воспроизведения
@@ -30,7 +30,7 @@
 
 ```bash
 # Форкните и клонируйте репозиторий
-git clone https://github.com/YOUR_USERNAME/telegram-ticket-bot.git
+git clone https://github.com/okidoki888/telegram-ticket-bot.git
 cd telegram-ticket-bot
 
 # Создайте ветку для изменений

@@ -6,7 +6,7 @@
 
 ```bash
 # Клонируйте репозиторий
-git clone <repo-url>
+git clone https://github.com/okidoki888/telegram-ticket-bot.git
 cd telegram-ticket-bot
 
 # Скопируйте конфигурацию
