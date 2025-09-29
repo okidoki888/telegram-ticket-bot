@@ -41,6 +41,20 @@ config.local.*
 
 # Файлы с чувствительными данными
 cursor_configure_telegram_bot_settings.md
+*chat*.md
+*конфигурация*.md
+*configure*.md
+
+# SSH ключи и сертификаты
+*.pub
+id_*
+known_hosts*
+
+# Email и личные данные
+*@*.com
+*@*.ru
+*@gmail.*
+*@*.org
 
 # Временные файлы
 restore_temp/

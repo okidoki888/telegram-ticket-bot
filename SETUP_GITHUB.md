@@ -20,9 +20,12 @@
 
 **Нажмите:** New SSH key
 
-**Добавьте этот ключ:**
-```
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBmvMxsddd2gZYDCHRmSSTwIOtC9rKeRRggm16yDvEcm sbarishnikov00@gmail.com
+**Добавьте ваш SSH ключ:**
+```bash
+# Скопируйте содержимое вашего публичного ключа
+cat ~/.ssh/id_ed25519.pub
+# или
+cat ~/.ssh/id_rsa.pub
 ```
 
 **Title:** `MacBook-Air-Sergej`
